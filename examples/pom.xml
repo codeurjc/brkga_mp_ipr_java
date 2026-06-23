@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Standalone example project. It is NOT part of the wrapper build: it
+         depends on the PUBLISHED wrapper artifact from Maven Central, so it can
+         be downloaded (as examples.zip from a GitHub release), unzipped and run
+         with only a JDK + Maven — no C++ toolchain. -->
+    <groupId>io.github.codeurjc</groupId>
+    <artifactId>brkga-mp-ipr-java-examples</artifactId>
+    <version>0.1.0</version>
+    <packaging>jar</packaging>
+
+    <name>BRKGA-MP-IPR for Java — examples</name>
+    <description>TSP examples for the BRKGA-MP-IPR Java edition.</description>
+
+    <properties>
+        <maven.compiler.release>22</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Keep in sync with the wrapper version you depend on. -->
+        <brkga.version>0.1.0</brkga.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <!-- TODO: replace codeurjc with the published namespace. -->
+            <groupId>io.github.codeurjc</groupId>
+            <artifactId>brkga-mp-ipr-java</artifactId>
+            <version>${brkga.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Convenience in-process runner via `mvn compile exec:java`
+                 (pass -Dexec.mainClass=... and -Dexec.args="..."). It prints a
+                 JDK native-access warning, which is harmless; run.sh forks a JVM
+                 with native access enabled to avoid it. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+            </plugin>
+
+            <!-- Builds examples.zip (sources + data + run.sh + README + pom) for
+                 attaching to a GitHub release. Run: mvn -Pdist package -DskipTests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.7.1</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>assembly/dist.xml</descriptor>
+                    </descriptors>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <finalName>brkga_mp_ipr_java_examples</finalName>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-dist-zip</id>
+                        <phase>package</phase>
+                        <goals><goal>single</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

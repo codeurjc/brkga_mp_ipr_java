@@ -1,0 +1,43 @@
+# =============================================================================
+# Dockerfile.build: recompile the BRKGA-MP-IPR native bridge libraries with
+# custom options, with NO local C++ toolchain required.
+#
+# Build context MUST be the repository root (it needs both the bridge sources in
+# brkga_mp_ipr_java/native and the upstream headers in the third_party submodule).
+#
+#   # make sure the submodule is present first:
+#   git submodule update --init
+#
+#   docker build -t brkga-native -f docker/Dockerfile.build .
+#
+#   # produce custom binaries into ./out (override any of the make variables):
+#   docker run --rm -v "$PWD/out:/out" \
+#       -e MATING=MATING_FULL_SPEED \
+#       -e TUPLE_NS="1 2 3 8" \
+#       -e EXTRA_CAP=16 \
+#       -e CAP=32 \
+#       brkga-native
+#
+# Then run your application pointing at the new binaries:
+#   java --enable-native-access=ALL-UNNAMED -Dbrkga.bridge.dir=./out ...
+# =============================================================================
+FROM gcc:13
+
+RUN apt-get update && apt-get install -y --no-install-recommends make \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+# Copy only what the native build needs.
+COPY third_party/brkga_mp_ipr_cpp /src/third_party/brkga_mp_ipr_cpp
+COPY brkga_mp_ipr_java/native          /src/brkga_mp_ipr_java/native
+COPY docker/build-native.sh       /usr/local/bin/build-native.sh
+RUN chmod +x /usr/local/bin/build-native.sh
+
+# Defaults match the Makefile; override at `docker run` time with -e.
+ENV MATING=MATING_SEQUENTIAL \
+    TUPLE_NS="1 2 3 4 5" \
+    EXTRA_CAP=8 \
+    CAP=20
+
+WORKDIR /src/brkga_mp_ipr_java/native
+ENTRYPOINT ["/usr/local/bin/build-native.sh"]

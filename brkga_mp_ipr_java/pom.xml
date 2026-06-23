@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ====================================================================
+         Coordinates. The groupId is the GitHub-account namespace
+         (io.github.codeurjc); claim/verify it once at
+         https://central.sonatype.com/ before the first deploy.
+         ==================================================================== -->
+    <groupId>io.github.codeurjc</groupId>
+    <artifactId>brkga-mp-ipr-java</artifactId>
+    <version>0.1.0</version>
+    <packaging>jar</packaging>
+
+    <name>BRKGA-MP-IPR for Java</name>
+    <description>
+        Java edition of the C++ BRKGA-MP-IPR library (Multi-Parent Biased
+        Random-Key Genetic Algorithm with Implicit Path Relinking), driven
+        through the Foreign Function and Memory API. Ships precompiled Linux
+        x86-64 native binaries, so no C++ toolchain is needed to use it.
+    </description>
+    <url>https://github.com/codeurjc/brkga_mp_ipr_java</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <!-- TODO: replace with your details before deploying. -->
+            <name>Micael Gallego</name>
+            <email>micael.gallego@gmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/codeurjc/brkga_mp_ipr_java.git</connection>
+        <developerConnection>scm:git:git@github.com:codeurjc/brkga_mp_ipr_java.git</developerConnection>
+        <url>https://github.com/codeurjc/brkga_mp_ipr_java</url>
+    </scm>
+
+    <properties>
+        <!-- FFM API is stable (non-preview) since JDK 22 (JEP 454). -->
+        <maven.compiler.release>22</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <junit.version>5.11.3</junit.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- Bundle the precompiled native bridges inside the JAR so the artifact
+             is self-contained. The loader extracts them at run time when no
+             external brkga.bridge.dir is provided. Filtering MUST stay off (these
+             are binaries). -->
+        <resources>
+            <resource>
+                <directory>${project.basedir}/native</directory>
+                <includes>
+                    <include>*.so</include>
+                </includes>
+                <targetPath>native/linux-x86-64</targetPath>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <!-- Build the native bridges (make all) before resources are copied,
+                 and the C++ reference binary before the tests run. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>build-native</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>make</executable>
+                            <workingDirectory>${project.basedir}/native</workingDirectory>
+                            <arguments><argument>all</argument></arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-reference</id>
+                        <phase>generate-test-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>make</executable>
+                            <workingDirectory>${project.basedir}/native</workingDirectory>
+                            <arguments><argument>tests_reference</argument></arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Tests need native access + the bridge directory + 1 thread. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
+                <configuration>
+                    <argLine>
+                        --enable-native-access=ALL-UNNAMED
+                        -Dbrkga.bridge.dir=${project.basedir}/native
+                        -Dbrkga.num_threads=1
+                    </argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- ================================================================
+             Publishing to Maven Central. Activate with `-Prelease`. Requires:
+               * a verified Sonatype Central namespace (see groupId above),
+               * a GPG key (and its passphrase) for signing,
+               * server credentials under the id `central` in ~/.m2/settings.xml.
+             The CI workflow (.github/workflows/deploy.yml) wires these as secrets.
+             ================================================================ -->
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals><goal>jar-no-fork</goal></goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.11.2</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadoc</id>
+                                <goals><goal>jar</goal></goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <release>22</release>
+                            <quiet>true</quiet>
+                            <doclint>none</doclint>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.7</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals><goal>sign</goal></goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.7.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <!-- false: upload + validate, then PUBLISH manually from
+                                 the portal (safer for the first releases). Set to
+                                 true to auto-release once validation passes. -->
+                            <autoPublish>false</autoPublish>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

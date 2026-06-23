@@ -1,0 +1,30 @@
+name: Release examples zip
+
+# Builds brkga_mp_ipr_java_examples.zip and attaches it to the GitHub release that
+# triggered this workflow. The zip is just sources + TSP data + run.sh + README;
+# it does not need the published artifact to be assembled (only to be run later).
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to upload the asset to the release
+
+jobs:
+  examples-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '22'
+          cache: maven
+      - name: Build examples.zip
+        run: mvn -B -f examples/pom.xml assembly:single
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: examples/target/brkga_mp_ipr_java_examples.zip
