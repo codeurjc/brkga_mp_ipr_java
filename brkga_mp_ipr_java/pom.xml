@@ -12,7 +12,7 @@
          ==================================================================== -->
     <groupId>io.github.codeurjc</groupId>
     <artifactId>brkga-mp-ipr-java</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
 
     <name>BRKGA-MP-IPR for Java</name>
@@ -47,8 +47,9 @@
     </scm>
 
     <properties>
-        <!-- FFM API is stable (non-preview) since JDK 22 (JEP 454). -->
-        <maven.compiler.release>22</maven.compiler.release>
+        <!-- Minimum required JDK is 25. The FFM API has been stable
+             (non-preview) since JDK 22 (JEP 454). -->
+        <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.11.3</junit.version>
     </properties>
@@ -79,6 +80,16 @@
         </resources>
 
         <plugins>
+            <!-- Pin the compiler plugin explicitly: older Maven distributions
+                 (< 3.9) default to maven-compiler-plugin 3.1, which predates the
+                 `release` option and fails on modern JDKs. This version honours
+                 the maven.compiler.release property above. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+            </plugin>
+
             <!-- Build the native bridges (make all) before resources are copied,
                  and the C++ reference binary before the tests run. -->
             <plugin>
@@ -159,7 +170,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <release>22</release>
+                            <release>25</release>
                             <quiet>true</quiet>
                             <doclint>none</doclint>
                         </configuration>
@@ -179,14 +190,15 @@
                     <plugin>
                         <groupId>org.sonatype.central</groupId>
                         <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>0.7.0</version>
+                        <version>0.11.0</version>
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>central</publishingServerId>
-                            <!-- false: upload + validate, then PUBLISH manually from
-                                 the portal (safer for the first releases). Set to
-                                 true to auto-release once validation passes. -->
-                            <autoPublish>false</autoPublish>
+                            <!-- true: upload, validate and auto-release once
+                                 validation passes (no manual portal step). Set to
+                                 false to upload + validate and PUBLISH manually
+                                 from the portal instead. -->
+                            <autoPublish>true</autoPublish>
                         </configuration>
                     </plugin>
                 </plugins>

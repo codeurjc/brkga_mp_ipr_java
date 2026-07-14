@@ -44,7 +44,7 @@ just a JDK and your build tool. Add the dependency:
 <dependency>
     <groupId>io.github.codeurjc</groupId>
     <artifactId>brkga-mp-ipr-java</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -65,7 +65,7 @@ to **recompile** the native library for advanced options — see
 
 **To use the library (the common case):**
 
-- **JDK 22 or newer** (tested with JDK 25). The wrapper uses the Foreign Function
+- **JDK 25 or newer** (tested with JDK 25). The wrapper uses the Foreign Function
   & Memory API, stable since JDK 22.
 - **Linux x86-64.** The bundled native binaries target this platform. On other
   platforms you must build your own (the loader will report that no binary

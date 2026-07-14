@@ -1,12 +1,12 @@
 # =============================================================================
-# Dockerfile.dev: full maintainer toolchain (JDK 22 + g++/OpenMP + Maven) to
+# Dockerfile.dev: full maintainer toolchain (JDK 25 + g++/OpenMP + Maven) to
 # build and test the wrapper from source.
 #
 #   git submodule update --init
 #   docker build -t brkga-dev -f docker/Dockerfile.dev .
 #   docker run --rm -v "$PWD:/work" -w /work/brkga_mp_ipr_java brkga-dev mvn test
 # =============================================================================
-FROM eclipse-temurin:22-jdk
+FROM eclipse-temurin:25-jdk
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         g++ make maven \

@@ -11,17 +11,17 @@
          with only a JDK + Maven — no C++ toolchain. -->
     <groupId>io.github.codeurjc</groupId>
     <artifactId>brkga-mp-ipr-java-examples</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
 
     <name>BRKGA-MP-IPR for Java — examples</name>
     <description>TSP examples for the BRKGA-MP-IPR Java edition.</description>
 
     <properties>
-        <maven.compiler.release>22</maven.compiler.release>
+        <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Keep in sync with the wrapper version you depend on. -->
-        <brkga.version>0.1.0</brkga.version>
+        <brkga.version>0.2.0</brkga.version>
     </properties>
 
     <dependencies>
@@ -35,6 +35,16 @@
 
     <build>
         <plugins>
+            <!-- Pin the compiler plugin explicitly: older Maven distributions
+                 (< 3.9) default to maven-compiler-plugin 3.1, which predates the
+                 `release` option and fails on modern JDKs. This version honours
+                 the maven.compiler.release property above. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+            </plugin>
+
             <!-- Convenience in-process runner via `mvn compile exec:java`
                  (pass -Dexec.mainClass=... and -Dexec.args="..."). It prints a
                  JDK native-access warning, which is harmless; run.sh forks a JVM

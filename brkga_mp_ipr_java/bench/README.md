@@ -41,7 +41,7 @@ the Java side uses the wrapper's published API and bundled native bridge.
 
 ## Requirements
 
-JDK 22+, Maven, and g++ with OpenMP (the same toolchain used to build the
+JDK 25+, Maven, and g++ with OpenMP (the same toolchain used to build the
 wrapper). The driver builds the native baseline, the wrapper, and the Java
 benchmark classes itself.
 

@@ -30,7 +30,7 @@ git submodule update --init
 <dependency>
     <groupId>io.github.codeurjc</groupId>
     <artifactId>brkga-mp-ipr-java</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -64,7 +64,7 @@ directory. Then:
 
 ## Maintainer notes
 
-- Build & test the wrapper: `cd brkga_mp_ipr_java && mvn test` (needs JDK 22+, g++, make)
+- Build & test the wrapper: `cd brkga_mp_ipr_java && mvn test` (needs JDK 25+, g++, make)
   — or use [`docker/Dockerfile.dev`](docker/Dockerfile.dev).
 - Update the upstream library: `git submodule update --remote third_party/brkga_mp_ipr_cpp`
   and commit the new pointer.

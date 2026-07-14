@@ -7,7 +7,7 @@ This is a **standalone Maven project**: it depends on the published
 `io.github.codeurjc:brkga-mp-ipr-java` artifact from Maven Central, which ships the
 precompiled native binaries. So you need **no C++ compiler** — just:
 
-- **JDK 22 or newer**
+- **JDK 25 or newer**
 - **Maven 3.9+**
 - **Linux x86-64** (the platform the bundled binaries target; for other platforms
   or custom builds, see *Recompiling* below)

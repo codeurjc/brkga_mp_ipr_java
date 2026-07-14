@@ -3,7 +3,7 @@
 # run.sh: compiles (if needed) and runs one of the BRKGA-MP-IPR Java examples.
 #
 # It fetches the published wrapper artifact (with its bundled native binaries)
-# from Maven Central, so NO C++ toolchain is required — only a JDK 22+ and Maven.
+# from Maven Central, so NO C++ toolchain is required — only a JDK 25+ and Maven.
 #
 # Usage:
 #   ./run.sh <main-class> <args...>

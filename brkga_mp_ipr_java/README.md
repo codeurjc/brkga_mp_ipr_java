@@ -19,7 +19,7 @@ low-level native-interop details.
   benchmark, known issues and next steps.
 - **API reference (JavaDoc)** — in the source under
   [`src/main/java/brkga/`](src/main/java/brkga). Generate the HTML with:
-  `javadoc -d docs/api --release 22 -sourcepath src/main/java -subpackages brkga`
+  `javadoc -d docs/api --release 25 -sourcepath src/main/java -subpackages brkga`
 
 ## Quick start
 
