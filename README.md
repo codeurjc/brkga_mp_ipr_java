@@ -35,8 +35,12 @@ git submodule update --init
 ```
 
 Run your app with native access enabled:
-`java --enable-native-access=ALL-UNNAMED ...`. Linux x86-64 binaries are bundled;
-for other platforms or custom builds, see *Recompiling* in the Java guide.
+`java --enable-native-access=ALL-UNNAMED ...`. Linux x86-64 binaries are bundled
+(they need glibc ≥ 2.32 and a libstdc++ exporting GLIBCXX_3.4.32 or newer);
+for other platforms, an older Linux, or custom builds, see
+[*Recompiling*](brkga_mp_ipr_java/docs/JAVA_GUIDE.md#recompiling-the-native-library)
+and [*Running on an older Linux*](brkga_mp_ipr_java/docs/JAVA_GUIDE.md#running-on-an-older-linux-glibc--glibcxx-too-new)
+in the Java guide.
 
 ## Documentation
 
