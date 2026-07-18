@@ -37,3 +37,7 @@ brkga_mp_ipr_java/bench/out/
 
 # Recompiled native libraries produced via Docker
 out/
+
+# Locally built native libraries (older-glibc workflow, scripts/build_brkga_native.sh)
+/native/
+examples/native/

@@ -73,3 +73,13 @@ the parallel-mating mode, or the extra-blob capacity, build your own binaries wi
 Docker (no local toolchain needed) and point the JVM at them with
 `-Dbrkga.bridge.dir=...`. See
 [JAVA_GUIDE.md → Recompiling the native library](https://github.com/codeurjc/brkga_mp_ipr_java/blob/main/brkga_mp_ipr_java/docs/JAVA_GUIDE.md#recompiling-the-native-library).
+
+**On an older Linux?** The bundled binaries need glibc ≥ 2.32 and a libstdc++
+exporting GLIBCXX_3.4.32 or newer. On a system with older versions the example
+aborts with
+`Exception Occurred: Cannot open library: /tmp/brkga-native-*/libbrkga_bridge_1.so`
+(the real reason is the too-new `GLIBC_2.32` / `GLIBCXX_3.4.32`). Build a
+compatible bridge into `examples/native/` — which `run.sh` then picks up
+automatically — with
+[`scripts/build_brkga_native.sh`](https://github.com/codeurjc/brkga_mp_ipr_java/blob/main/scripts/build_brkga_native.sh);
+see [JAVA_GUIDE.md → Running on an older Linux](https://github.com/codeurjc/brkga_mp_ipr_java/blob/main/brkga_mp_ipr_java/docs/JAVA_GUIDE.md#running-on-an-older-linux-glibc--glibcxx-too-new).

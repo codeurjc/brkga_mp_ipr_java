@@ -26,6 +26,7 @@ type.
 - [Runtime flags and the bridge library](#runtime-flags-and-the-bridge-library)
 - [Number of objectives](#number-of-objectives)
 - [Recompiling the native library](#recompiling-the-native-library)
+- [Running on an older Linux (GLIBC / GLIBCXX too new)](#running-on-an-older-linux-glibc--glibcxx-too-new)
 - [Keeping extra data in the chromosome](#keeping-extra-data-in-the-chromosome)
 - [Writing a fast decoder](#writing-a-fast-decoder)
 - [Performance](#performance)
@@ -59,6 +60,12 @@ temporary file and loads it. You only need the toolchain (or Docker) if you want
 to **recompile** the native library for advanced options — see
 [Recompiling the native library](#recompiling-the-native-library).
 
+> **On a system whose glibc/libstdc++ are too old** (glibc < 2.32 or a libstdc++
+> that does not export GLIBCXX_3.4.32) the bundled binary may fail to load with
+> `Cannot open library: /tmp/brkga-native-*/libbrkga_bridge_1.so` (the underlying
+> reason is the too-new `GLIBC_2.32` / `GLIBCXX_3.4.32`). Build a compatible bridge
+> locally — see [Running on an older Linux](#running-on-an-older-linux-glibc--glibcxx-too-new).
+
 ---
 
 ## Requirements and platform
@@ -70,6 +77,9 @@ to **recompile** the native library for advanced options — see
 - **Linux x86-64.** The bundled native binaries target this platform. On other
   platforms you must build your own (the loader will report that no binary
   applies); see [Recompiling the native library](#recompiling-the-native-library).
+  The bundled binaries need **glibc ≥ 2.32 and a libstdc++ exporting
+  GLIBCXX_3.4.32 or newer**; on a system with older versions, build them locally —
+  see [Running on an older Linux](#running-on-an-older-linux-glibc--glibcxx-too-new).
 - Your build tool (Maven/Gradle) to pull the dependency.
 
 **To build the wrapper from source / recompile the native core** (maintainers,
@@ -278,12 +288,151 @@ make -C brkga_mp_ipr_java/native clean
 make -C brkga_mp_ipr_java/native all MATING=MATING_FULL_SPEED TUPLE_NS="1 2 3 8" EXTRA_CAP=16 CAP=32
 ```
 
-`-Dbrkga.bridge.dir` always takes precedence over the binaries bundled in the JAR,
-so a recompiled set transparently replaces them.
+For each requested filename, `-Dbrkga.bridge.dir` takes precedence over the
+binary bundled in the JAR. If the file is absent from that directory, the loader
+falls back to the bundled version, so place a complete custom set there when the
+bundled binaries cannot run on the host.
 
 > For **N > 20** you must also raise `CAP` (and the `Brkga.CAP` constant if you
 > rebuild the wrapper) to extend the generic binary, or build a dedicated tuple
 > binary for that N.
+
+---
+
+## Running on an older Linux (GLIBC / GLIBCXX too new)
+
+### The symptom
+
+The native binaries bundled in the JAR are compiled on **Ubuntu 24.04**, so they
+require **`GLIBC_2.32`** and **`GLIBCXX_3.4.32`**. On an older host — for example
+Ubuntu 20.04, which ships glibc 2.31 / GLIBCXX 3.4.28 — the first BRKGA call
+(`Brkga.single()` / `Brkga.multi()` / `forObjectives(...)`, which is where the
+bridge is loaded) throws. Your application sees only the top-level message — the
+JVM does **not** print the reason:
+
+```
+java.lang.IllegalArgumentException: Cannot open library: /tmp/brkga-native-<random>/libbrkga_bridge_1.so
+```
+
+(the examples print it as `Exception Occurred: Cannot open library: /tmp/brkga-native-…/libbrkga_bridge_1.so`).
+
+The real cause is the too-new glibc/libstdc++. To confirm it, extract the bundled
+`.so` and inspect it with `ldd` — you will see the missing versions:
+
+```console
+$ ldd libbrkga_bridge_1.so
+    ... /lib/x86_64-linux-gnu/libstdc++.so.6: version `GLIBCXX_3.4.32' not found ...
+    ... /lib/x86_64-linux-gnu/libc.so.6:      version `GLIBC_2.32' not found ...
+```
+
+If you see `Cannot open library: …/libbrkga_bridge_*.so` on a Linux older than
+Ubuntu 24.04, this is almost certainly why — build the bridge locally as below.
+
+### Which systems are affected (and which are not)
+
+The real requirement is **not** "the Ubuntu 24.04 distribution"; it is **two
+version thresholds, both of which must be met**:
+
+- **`glibc ≥ 2.32`**, and
+- a **libstdc++ exporting `GLIBCXX_3.4.32` or newer**. This symbol version first
+  appeared in GCC 13.2 (`GLIBCXX_3.4.31` = GCC 13.1, `GLIBCXX_3.4.33` = GCC 14).
+  Ubuntu 24.04 is the first Ubuntu LTS whose default runtime meets this threshold.
+
+Because glibc and libstdc++ are **backward-compatible** (a newer library still
+exports the older symbol versions), any system **at or above** both thresholds
+loads the bundled binary fine. Installing a newer GCC/libstdc++ alone is not
+enough when the host glibc is still below 2.32; both checks are independent.
+
+Watch out for the intuition "newer release date = fine": what matters is the
+libstdc++ version, not how recent the distro is. For example **Ubuntu 22.04**
+has glibc 2.35 (≥ 2.32, fine) but its default libstdc++ is from GCC 12, i.e. only
+GLIBCXX_3.4.30 (< 3.4.32) — so it **also fails**, on the GLIBCXX side.
+
+| System | glibc | GLIBCXX (libstdc++) | Loads the bundled `.so`? |
+|---|---|---|---|
+| Ubuntu 24.04 | 2.39 ✅ | 3.4.32 ✅ | ✅ yes |
+| Other distributions | ≥ 2.32 ✅ | ≥ 3.4.32 ✅ | ✅ yes |
+| Ubuntu 22.04 | 2.35 ✅ | 3.4.30 ❌ | ❌ no (GLIBCXX too old) |
+| Ubuntu 20.04 | 2.31 ❌ | 3.4.28 ❌ | ❌ no |
+
+If your system is in a ❌ row, build the bridge locally as below.
+
+### The fix
+
+Build the bridge yourself so it targets your host. Two things make
+the result run on an old system:
+
+1. **Compile against an old-enough glibc** — either directly on the old host, or
+   inside an old base image. A newer glibc cannot be "downgraded" by a flag, so
+   the [*Recompiling the native library*](#recompiling-the-native-library) Docker
+   route (base `gcc:13`) does **not** help here: its glibc is newer still.
+2. **Statically link the C++ runtime** with `-static-libstdc++ -static-libgcc`,
+   so the binary carries its own libstdc++ and no longer depends on the host's
+   `GLIBCXX`. The Makefile compiles with `$(CXX)`, so the simplest way to inject
+   those flags (keeping all its tuned optimization flags) is to fold them into
+   `CXX`: `CXX="g++-13 -static-libstdc++ -static-libgcc"`.
+
+> **Toolchain note.** The bridge needs a real C++20 standard library
+> (`<concepts>`, and `operator<<` for `std::chrono::duration`), so **g++ 13** is
+> required — older compilers on old distros (g++-9/10) are not enough.
+
+### Route A — Docker (no local C++ toolchain)
+
+Use the helper script. It clones the published tag, builds inside an older base
+image with g++-13 from the `ubuntu-toolchain-r` PPA, statically links libstdc++,
+and writes the `.so` to `./native` (override with `OUT_DIR`):
+
+```bash
+# single-objective, default Ubuntu 20.04 base, output into the examples project
+OUT_DIR="$PWD/examples/native" scripts/build_brkga_native.sh
+
+# Other knobs (all optional env vars). This builds objective counts 1, 2 and 3,
+# adds the generic bridge, and targets the oldest supported PPA base:
+TUPLE_NS="1 2 3" \
+GENERIC=1 \
+IMAGE=ubuntu:18.04 \
+    scripts/build_brkga_native.sh
+```
+
+Then either:
+
+- put the output in **`examples/native/`** (the default when you run the examples
+  from `examples/`): [`run.sh`](../../examples/run.sh) picks it up automatically,
+  no flags needed; **or**
+- point your own app at it explicitly:
+
+  ```bash
+  java --enable-native-access=ALL-UNNAMED -Dbrkga.bridge.dir=/path/to/native ...
+  ```
+
+  A file in `-Dbrkga.bridge.dir` wins over the same bundled file. If a requested
+  bridge is absent from that directory, the loader falls back to the JAR.
+
+### Route B — local build, no Docker (the most portable)
+
+Building on the old host itself links against exactly that host's glibc, which is
+the surest match. You need g++ 13 + make + OpenMP on that host:
+
+```bash
+git submodule update --init          # fetch the upstream headers
+make -C brkga_mp_ipr_java/native tuples TUPLE_NS="1" \
+    CXX="g++-13 -static-libstdc++ -static-libgcc"
+```
+
+Copy the resulting `libbrkga_bridge_*.so` next to your working directory as
+`native/…`, or point `-Dbrkga.bridge.dir` at them.
+
+### Notes
+
+- **Multiple objectives.** `TUPLE_NS="1"` only builds the single-objective
+  binary. For `Brkga.forObjectives(2)` or `(3)`, the loader would then fall back
+  to the corresponding binary bundled in the JAR, which still cannot load on
+  the older host. Build every count you need (`TUPLE_NS="1 2 3"`) or add
+  `GENERIC=1` for a runtime-selectable local binary.
+- **Remaining runtime dependency.** The binaries still need OpenMP at run time
+  (`libgomp.so.1`, from the `libgomp1` package) — that is a small, universally
+  available shared library, not a GLIBCXX-versioned one. The script's final
+  `ldd` check reports any unresolved dependency.
 
 ---
 
