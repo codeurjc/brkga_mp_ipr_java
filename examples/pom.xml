@@ -11,7 +11,7 @@
          with only a JDK + Maven — no C++ toolchain. -->
     <groupId>io.github.codeurjc</groupId>
     <artifactId>brkga-mp-ipr-java-examples</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <packaging>jar</packaging>
 
     <name>BRKGA-MP-IPR for Java — examples</name>
@@ -21,7 +21,7 @@
         <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Keep in sync with the wrapper version you depend on. -->
-        <brkga.version>0.2.0</brkga.version>
+        <brkga.version>0.3.0</brkga.version>
     </properties>
 
     <dependencies>

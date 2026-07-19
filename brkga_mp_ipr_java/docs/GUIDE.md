@@ -54,7 +54,7 @@ binaries, so **no C++ compiler is needed**:
 <dependency>
     <groupId>io.github.codeurjc</groupId>
     <artifactId>brkga-mp-ipr-java</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 

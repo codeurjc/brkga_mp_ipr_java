@@ -30,13 +30,13 @@
 # Usage (all knobs are optional environment variables):
 #   scripts/build_brkga_native.sh
 #
-#   BRKGA_TAG   git tag to clone (keep in sync with the version you use)  [v0.2.0]
+#   BRKGA_TAG   git tag to clone (keep in sync with the version you use)  [v0.3.0]
 #   IMAGE       older base image to build in                        [ubuntu:20.04]
 #   TUPLE_NS    objective counts to build, space-separated                    [1]
 #               e.g. TUPLE_NS="1 2 3" for the single + two/three-objective demos
 #   GENERIC     set to 1 to also build libbrkga_bridge_generic.so             [0]
 #   EXTRA_CAP   inline extra-blob capacity (doubles), uniform across binaries  [8]
-#   CAP         ABI capacity; only 20 is accepted (must match Java 0.2.0)     [20]
+#   CAP         ABI capacity; only 20 is accepted (must match Java 0.3.0)     [20]
 #   MATING      mating mode (MATING_SEQUENTIAL|MATING_SEED_ONLY|MATING_FULL_SPEED)
 #                                                              [MATING_SEQUENTIAL]
 #   OUT_DIR     where the .so files are written                       [$PWD/native]
@@ -50,7 +50,7 @@
 set -euo pipefail
 
 # Keep BRKGA_TAG in sync with the artifact version you depend on.
-BRKGA_TAG="${BRKGA_TAG:-v0.2.0}"
+BRKGA_TAG="${BRKGA_TAG:-v0.3.0}"
 IMAGE="${IMAGE:-ubuntu:20.04}"
 TUPLE_NS="${TUPLE_NS:-1}"
 GENERIC="${GENERIC:-0}"
@@ -64,7 +64,7 @@ KEEP_WORK_DIR="${KEEP_WORK_DIR:-0}"
 # network access or Docker work. CAP is part of BridgeStatus's binary layout and
 # therefore must match AlgorithmStatus.CAP in the published Java artifact.
 if [ "${CAP}" != "20" ]; then
-    echo "CAP=${CAP} is incompatible with the Java 0.2.0 ABI; only CAP=20 is supported." >&2
+    echo "CAP=${CAP} is incompatible with the Java 0.3.0 ABI; only CAP=20 is supported." >&2
     echo "Changing CAP requires rebuilding the Java wrapper and AlgorithmStatus layout too." >&2
     exit 2
 fi
