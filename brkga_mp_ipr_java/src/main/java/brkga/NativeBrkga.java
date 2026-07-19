@@ -81,6 +81,7 @@ final class NativeBrkga {
     // Getters.
     final MethodHandle getBestFitness;
     final MethodHandle getBestChromosome;
+    final MethodHandle getLastStatusBestChromosome;
     final MethodHandle getBestChromosomeExtra;
     final MethodHandle getChromosome;
     final MethodHandle getChromosomeExtra;
@@ -162,6 +163,8 @@ final class NativeBrkga {
         getBestFitness = dc("brkga_get_best_fitness",
             FunctionDescriptor.ofVoid(ADDRESS, ADDRESS));
         getBestChromosome = dc("brkga_get_best_chromosome",
+            FunctionDescriptor.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_LONG));
+        getLastStatusBestChromosome = dc("brkga_get_last_status_best_chromosome",
             FunctionDescriptor.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_LONG));
         getBestChromosomeExtra = dc("brkga_get_best_chromosome_extra",
             FunctionDescriptor.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_LONG));

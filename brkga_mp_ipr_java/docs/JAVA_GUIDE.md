@@ -45,7 +45,7 @@ just a JDK and your build tool. Add the dependency:
 <dependency>
     <groupId>io.github.codeurjc</groupId>
     <artifactId>brkga-mp-ipr-java</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 

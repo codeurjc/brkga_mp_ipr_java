@@ -572,6 +572,29 @@ int brkga_get_best_chromosome(void* algo, double* out, size_t size) {
     }
 }
 
+/// Copies the best chromosome recorded in the last run's status (the historical
+/// incumbent, which survives shake/reset) into `out` (size doubles). Unlike
+/// brkga_get_best_chromosome, this is NOT the live population best: run() snapshots
+/// it into status.best_chromosome on every improvement, so it is the true best of
+/// the whole run even if a later shake/reset dropped it from the populations.
+/// Returns 0 on success, non-zero if no run has recorded a best yet or on size
+/// mismatch.
+int brkga_get_last_status_best_chromosome(void* algo, double* out, size_t size) {
+    try {
+        const auto& chr = static_cast<AlgorithmContext*>(algo)
+            ->last_status.best_chromosome;
+        // Empty until the first improvement of a run records a best.
+        if(chr.size() == 0 || chr.size() < size)
+            return 1;
+        for(size_t i = 0; i < size; ++i)
+            out[i] = chr[i];
+        return 0;
+    }
+    catch(std::exception&) {
+        return 1;
+    }
+}
+
 /// Capacity (in doubles) of every chromosome's inline extra blob.
 unsigned brkga_extra_capacity() {
     return BRKGA::CHROMOSOME_EXTRA_CAP;

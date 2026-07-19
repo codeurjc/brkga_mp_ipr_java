@@ -30,7 +30,7 @@ git submodule update --init
 <dependency>
     <groupId>io.github.codeurjc</groupId>
     <artifactId>brkga-mp-ipr-java</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
@@ -41,6 +41,11 @@ for other platforms, an older Linux, or custom builds, see
 [*Recompiling*](brkga_mp_ipr_java/docs/JAVA_GUIDE.md#recompiling-the-native-library)
 and [*Running on an older Linux*](brkga_mp_ipr_java/docs/JAVA_GUIDE.md#running-on-an-older-linux-glibc--glibcxx-too-new)
 in the Java guide.
+
+> **Upgrading to 0.3.0:** this release adds the native symbol
+> `brkga_get_last_status_best_chromosome` behind `BrkgaMpIpr.getLastRunBestChromosome()`.
+> If you supply your own native library via `-Dbrkga.bridge.dir`, rebuild it from the
+> 0.3.0 sources — a 0.2.0 `.so` lacks the new symbol and the wrapper will fail to link it.
 
 ## Documentation
 

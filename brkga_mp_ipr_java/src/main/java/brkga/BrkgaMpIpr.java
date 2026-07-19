@@ -709,10 +709,12 @@ public final class BrkgaMpIpr implements AutoCloseable {
      *
      * <p><b>Warning:</b> This method does NOT return the overall best solution, but the
      * best one within the current population. If {@link #shake(int, ShakingType, int)}
-     * or {@link #reset()} is called, the best solution may be lost in the populations.
-     * However, if you are using {@link #run(ControlParams)}, the best solution is
-     * returned by that method; otherwise you must keep track of the best solution
-     * yourself.
+     * or {@link #reset()} is called, the overall best may be lost from the populations,
+     * so after a {@link #run(ControlParams)} whose control parameters enable shaking or
+     * resetting this can return a solution worse than the run's best. To recover the
+     * best solution of the last run in that case, use {@link #getLastRunBestChromosome()},
+     * whose fitness matches the {@link AlgorithmStatus#bestFitness} returned by
+     * {@code run}.
      *
      * @return the best chromosome as a {@code double[]} of genes in [0,1).
      * @throws RuntimeException with message {@code "No best chromosome available"} when
@@ -728,6 +730,34 @@ public final class BrkgaMpIpr implements AutoCloseable {
         }
         catch(RuntimeException e) { throw e; }
         catch(Throwable t) { throw new RuntimeException("getBestChromosome failed", t); }
+    }
+
+    /**
+     * Returns the best chromosome recorded during the last {@link #run(ControlParams)},
+     * the overall incumbent of that run.
+     *
+     * <p>Unlike {@link #getBestChromosome()}, this is not the current-population best:
+     * {@code run} snapshots the incumbent on every improvement, so this survives any
+     * {@link #shake(int, ShakingType, int)} or {@link #reset()} triggered during the
+     * run. Its fitness equals the {@link AlgorithmStatus#bestFitness} that {@code run}
+     * returned. This is the method to use to rebuild the solution a run converged to.
+     *
+     * @return the last run's best chromosome as a {@code double[]} of genes in [0,1).
+     * @throws RuntimeException with message
+     *                          {@code "No best chromosome available from the last run"}
+     *                          when no run has recorded a best yet (no {@code run} has
+     *                          completed at least one improving iteration), or wrapping
+     *                          the native error message if the native call otherwise fails.
+     */
+    public double[] getLastRunBestChromosome() {
+        try(Arena temp = Arena.ofConfined()) {
+            MemorySegment out = temp.allocate((long) chromosomeSize * Double.BYTES);
+            int rc = (int) lib.getLastStatusBestChromosome.invoke(algo, out, (long) chromosomeSize);
+            if(rc != 0) throw new RuntimeException("No best chromosome available from the last run");
+            return out.toArray(JAVA_DOUBLE);
+        }
+        catch(RuntimeException e) { throw e; }
+        catch(Throwable t) { throw new RuntimeException("getLastRunBestChromosome failed", t); }
     }
 
     /**
