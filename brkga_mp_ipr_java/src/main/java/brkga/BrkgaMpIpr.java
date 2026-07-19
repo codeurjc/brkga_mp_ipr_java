@@ -249,9 +249,9 @@ public final class BrkgaMpIpr implements AutoCloseable {
     /**
      * Adds a callback called when the best solution is improved.
      *
-     * <p>The observer receives an {@link AlgorithmStatus} and returns {@code true} if
-     * the algorithm should stop immediately. You may add as many observers as you
-     * want; they are called in the order they are added.
+     * <p>The observer receives an {@link AlgorithmStatus} and returns {@code true} to
+     * keep the optimization running, or {@code false} to stop it immediately. You may
+     * add as many observers as you want; they are called in the order they are added.
      *
      * @param observer the {@link NewSolutionObserver} callback to be invoked on each
      *                 improvement of the best solution.
